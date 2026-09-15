@@ -6,6 +6,7 @@ from langchain_openai import ChatOpenAI
 load_dotenv()
 
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+
 MODELS = {
     "low": "openai/gpt-oss-20b",
     "medium": "qwen/qwen3.6-27b",
@@ -13,20 +14,47 @@ MODELS = {
 }
 
 
-def pick_llm(model_level: str) -> ChatOpenAI:
-    """Return a Groq-backed chat model for the requested capability tier."""
-    try:
-        model = MODELS[model_level.lower()]
-    except KeyError as error:
-        raise ValueError("Invalid model level. Choose from 'low', 'medium', or 'high'.") from error
+def pick_llm(level: str):
+    """
+    Select a Groq LLM based on the capability level.
 
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        raise RuntimeError("GROQ_API_KEY is not configured. Add it to your .env file.")
+    low    -> GPT-OSS 20B
+    medium -> Qwen 3.6 27B
+    high   -> GPT-OSS 120B
+    """
 
-    return ChatOpenAI(
-        model=model,
-        api_key=api_key,
-        base_url=GROQ_BASE_URL,
-        temperature=0,
-    )
+    if level.lower() == "low":
+        llm = ChatOpenAI(
+            model=MODELS["low"],
+            api_key=os.getenv("GROQ_API_KEY"),
+            base_url=GROQ_BASE_URL,
+            temperature=0,
+        )
+
+    elif level.lower() == "medium":
+        llm = ChatOpenAI(
+            model=MODELS["medium"],
+            api_key=os.getenv("GROQ_API_KEY"),
+            base_url=GROQ_BASE_URL,
+            temperature=0,
+        )
+
+    elif level.lower() == "high":
+        llm = ChatOpenAI(
+            model=MODELS["high"],
+            api_key=os.getenv("GROQ_API_KEY"),
+            base_url=GROQ_BASE_URL,
+            temperature=0,
+        )
+
+    else:
+        raise ValueError(f"Unsupported level: {level}")
+
+    return llm
+
+
+# Pick the LLM
+llm_obj = pick_llm("low")
+
+# Test the LLM
+print(llm_obj.invoke("What is the capital of France?"))

@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 
 class AgentSchema(BaseModel):
     messages: Annotated[list, add] = Field(..., description="List of messages from the agent.")
+    user_question: str = Field(..., description="The original question asked by the user.")
     curated_ques : str = Field(..., description="Curated question from the agent.")
     prompt_query_context : str = Field(..., description="Detailed prompt with SQL DB context that will help agent to generate the SQL query")
     is_safe : Literal['Yes', 'No'] = Field(..., description="Indicates whether the generated SQL query is safe or not.")
