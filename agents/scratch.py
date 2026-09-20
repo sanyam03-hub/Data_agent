@@ -21,9 +21,13 @@ the structure or content of the database. If the SQL query is safe, respond with
 'No'. Additionally, provide comments explaining your decision.
 Here's the SQL query to evaluate: {sql_query}"""
 
-try:
-	result = llm_judge.invoke(prompt)
-	print(result)
-except Exception as e:
-	print("LLM invocation failed:", str(e))
-	print("Ensure your OPENAI_API_KEY (or GROQ_API_KEY) is set and valid.")
+response = llm_judge.invoke(prompt).model_dump()  # Invoke the structured output LLM with the prompt
+print(response)  # Print the structured response containing 'answer' and 'comments'
+
+
+# try:
+# 	result = llm_judge.invoke(prompt)
+# 	print(result)
+# except Exception as e:
+# 	print("LLM invocation failed:", str(e))
+# 	print("Ensure your OPENAI_API_KEY (or GROQ_API_KEY) is set and valid.")

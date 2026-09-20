@@ -19,5 +19,5 @@ class JudgeSchema(BaseModel):
     answer : Literal['Yes', 'No'] = Field(..., description="Indicates whether the final answer is correct or not.")
     comments : str = Field(..., description="Comments or feedback provided by the judge regarding the final answer.")
 
-
-    
+class ETLAgentSchema(BaseModel):
+    messages: Annotated[list, add] = Field(..., description="List of messages to be processed by the ETL agent.")
