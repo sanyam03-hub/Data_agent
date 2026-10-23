@@ -6,14 +6,12 @@
 
 ## 📖 Overview
 
-The **Data Agent** is a Python‑powered ETL (Extract‑Transform‑Load) utility designed to bootstrap a PostgreSQL database with realistic sample data and lay the groundwork for AI‑driven data analysis.  It combines:
+The **Data Agent** lets non-technical users query a PostgreSQL database in plain English. It is built from two LangGraph agents:
 
-* Robust schema creation (users, vehicles, rides, payments, ratings)  
-* High‑performance bulk loading via PostgreSQL `COPY`  
-* A clean, extensible codebase ready for LangChain/LangGraph agents  
-* Simple CLI entry‑point (`data-agent`) for developers and data enthusiasts  
+* **SQL Analyst** (`agents/sql_analyst.py`): curates the question, builds context from the live schema and sample rows, generates SQL, runs it past an LLM safety judge, and only then executes it and writes the answer.
+* **ETL Analyst** (`agents/etl_analyst.py`): a tool-calling agent that extracts data from a URL and writes pandas code to transform it.
 
-Whether you’re prototyping a recommendation engine, practicing SQL queries, or experimenting with LLM‑to‑SQL agents, Data Agent gets you up and running in seconds.
+It also ships a loader (`feed_db.py`) that creates the schema (users, vehicles, rides, payments, ratings) and bulk-loads the sample CSVs with PostgreSQL `COPY`.
 
 ## 🏗️ Architecture
 
@@ -29,8 +27,8 @@ Whether you’re prototyping a recommendation engine, practicing SQL queries, or
 
 ## 🤖 Agent Descriptions
 
-### 1. **Data Agent (Main Router)**
-**File:** `agents/data_agent.py`
+### 1. **Data Agent (Main Router)**: planned
+**File:** `agents/data_agent.py` (not in the repository yet; today you run the SQL and ETL agents directly)
 
 **Responsibility:** 
 - Receives natural language user queries
@@ -64,10 +62,10 @@ Whether you’re prototyping a recommendation engine, practicing SQL queries, or
 7. **Answer Generation** - Formats and returns results
 
 **Safety Features:**
-- Prevents execution of dangerous commands (INSERT, UPDATE, DELETE, DROP, ALTER)
-- Validates query before execution
-- Automatic result limiting to 10 rows (unless specified)
-- Schema validation against database
+- An LLM judge with a structured (Pydantic) output reviews every generated query; a conditional edge cancels anything that would modify the database (INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, CREATE)
+- The prompt limits results to 10 rows unless the user asks for more
+- The prompt is built from the live schema and sample rows
+- Limitation: the judge is model-based, not a SQL parser. Connect with a read-only database user for a hard guarantee.
 
 ---
 
@@ -78,14 +76,14 @@ Whether you’re prototyping a recommendation engine, practicing SQL queries, or
 - Handles data extraction from APIs
 - Performs data transformation using Pandas
 - Manages data loading to various formats
-- Executes code safely in controlled environment
+- Executes the generated code in-process (`exec` with its own namespace; not sandboxed)
 
 **Workflow:**
 1. **Tool Binding** - Attaches ETL tools to LLM
 2. **User Intent Understanding** - Analyzes transformation requirements
 3. **Tool Selection** - Chooses appropriate ETL operation
 4. **Code Generation** - Generates Pandas code for transformation
-5. **Safe Execution** - Executes generated code in sandboxed environment
+5. **Code Execution** - Runs the generated code in-process (not sandboxed; only use it on trusted data)
 6. **Result Reporting** - Returns execution status and generated code
 
 **Supported Tools:**
@@ -121,6 +119,8 @@ class ETLAgentSchema(BaseModel):
     messages: List                    # Conversation messages
 ```
 
+The two schemas below belong to the planned router and are not in `models/schema.py` yet.
+
 ### RouterSchema (Query Classification)
 ```python
 class RouterSchema(BaseModel):
@@ -149,8 +149,8 @@ class DataAgentSchema(BaseModel):
 ### 1️⃣ Clone the repo
 
 ```bash
-git clone https://github.com/your-username/data-agent.git
-cd data-agent
+git clone https://github.com/sanyam03-hub/Data_agent.git
+cd Data_agent
 ```
 
 ### 2️⃣ Set up a virtual environment (UV)
